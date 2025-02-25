@@ -168,11 +168,11 @@
         <img id="plantImage" src="" alt="植物画像">
       </div>
       
-      <!-- BGM ON/OFFスイッチ -->
-      <label class="switch">
-        <input type="checkbox" id="bgmCheckbox" checked>
-        <span class="slider"></span>
-      </label>
+      <!-- ラベルとトグルボタン -->
+      <div>
+        <span>BGMの有無: </span>
+        <button id="muteButton" class="button">音 ON</button>
+      </div>
       
       <!-- 分類選択ボタン -->
       <div id="classificationButtons">
@@ -196,8 +196,9 @@
     </div>
   </div>
   
-  <!-- BGM -->
+  <!-- BGMの音声要素 -->
   <audio id="bgm" src="https://kogkoba.github.io/bunrui/sciencebgm.mp3" loop></audio>
+
 
   <!-- スクリプト -->
   <script>
@@ -358,14 +359,25 @@
     });
 
     // BGM ON/OFFスイッチ
-    bgmCheckbox.addEventListener('change', () => {
-      if (bgmCheckbox.checked) {
-        bgm.volume = 1.0;  // BGMをON
+     const bgm = document.getElementById('bgm');
+    const muteButton = document.getElementById('muteButton');
+
+    // 初期状態をミュートに設定（iOSでは初期はミュート状態にしておく）
+    bgm.muted = true;
+    muteButton.textContent = '音 ON';
+
+    // ミュート／ミュート解除のトグル処理
+    muteButton.addEventListener('click', () => {
+      if (bgm.muted) {
+        // ミュート状態から解除：ユーザー操作で再生開始
+        bgm.muted = false;
         bgm.play().catch(error => console.error("BGM再生エラー:", error));
+        muteButton.textContent = '音 OFF';
       } else {
-        bgm.volume = 0;    // ミュート
+        // 音が出ている場合はミュートにする
+        bgm.muted = true;
+        muteButton.textContent = '音 ON';
       }
-    });
 
     // ゲーム開始
     function startGame() {
