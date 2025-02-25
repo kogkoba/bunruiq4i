@@ -109,6 +109,18 @@
       gap: 5px;
       justify-items: center;
     }
+    /* シェイクアニメーション */
+    @keyframes shake {
+      0% { transform: translate(0, 0); }
+      20% { transform: translate(-10px, 0); }
+      40% { transform: translate(10px, 0); }
+      60% { transform: translate(-10px, 0); }
+      80% { transform: translate(10px, 0); }
+      100% { transform: translate(0, 0); }
+    }
+    .shake {
+      animation: shake 0.5s;
+    }
   </style>
 </head>
 <body>
@@ -286,6 +298,7 @@
     const endScreen = document.getElementById('endScreen');
     const bgm = document.getElementById('bgm');
     const muteButton = document.getElementById('muteButton');
+    const gameContainer = document.getElementById('gameContainer');
 
     // HPバー要素
     const plantHPInner = document.getElementById('plantHPInner');
@@ -363,6 +376,13 @@
           }
         }, 1000);
       } else {
+        // 不正解の場合、画面にシェイク効果を追加
+        gameContainer.classList.add('shake');
+        // シェイクアニメーション終了後、クラスを除去
+        setTimeout(() => {
+          gameContainer.classList.remove('shake');
+        }, 500);
+
         messageBox.innerText = "ミス！";
         setTimeout(() => {
           messageBox.innerText = currentPlant.name + " は　" + currentPlant.classification + " だ";
