@@ -235,42 +235,11 @@
     </div>
   </div>
   
-<!-- BGM -->
-<audio id="bgm" src="music.mp3" loop></audio>
+  <!-- BGM -->
+  <audio id="bgm" src="https://kogkoba.github.io/bunrui/sciencebgm.mp3" loop></audio>
 
-<!-- ミュートON/OFFボタン -->
-<button id="muteButton">音 ON</button>
-
-<script>
-  const bgm = document.getElementById('bgm');
-  const muteButton = document.getElementById('muteButton');
-
-  // ユーザー操作で再生開始
-  document.body.addEventListener('click', () => {
-    // まだ再生していない場合のみ play() 呼び出し
-    if (bgm.paused) {
-      bgm.play().catch(err => console.log(err));
-    }
-  }, { once: true });
-
-  // 初期状態
-  bgm.muted = false;  
-  muteButton.textContent = '音 OFF'; // 実際には「ミュートにする」動作を表す
-
-  // ボタンクリックでトグル
-  muteButton.addEventListener('click', () => {
-    // 現在の状態を反転
-    bgm.muted = !bgm.muted;
-
-    // ボタンの表示も切り替え
-    if (bgm.muted) {
-      muteButton.textContent = '音 ON';  // 「音を出す」状態へ切り替え
-    } else {
-      muteButton.textContent = '音 OFF'; // 「音を消す」状態へ切り替え
-    }
-  });
-</script>
-
+  <!-- スクリプト -->
+  <script>
     /* =============================
        ピンチアウト(ズーム)制御
        ============================= */
@@ -382,7 +351,6 @@
       { file: "fuzi.png", classification: "マメ科", name: "フジ" }
     ];
 
-    
     let currentPlant = null;
     let plantHP = 100;
     let playerHP = 100;
@@ -403,7 +371,7 @@
     const playerHPInner = document.getElementById('playerHPInner');
 
     // BGM初期設定
-    bgm.volume = 0;           // 最初はミュート
+    bgm.volume = 0;              // 最初はミュート
     bgmCheckbox.checked = false; // スイッチOFF表示
 
     // スタートボタン
@@ -455,7 +423,7 @@
       currentPlant = plants[Math.floor(Math.random() * plants.length)];
 
       // 画像パスは実際の配置に合わせて変更
-      // 同じフォルダにあるなら "./aburanna.png" のように書く
+      // 同じフォルダにあるならそのまま "aburanna.png" などでOK
       plantImage.src = currentPlant.file;
 
       // メッセージ演出
