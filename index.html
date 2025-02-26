@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  １
+  ２
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>植物の分類わけクイズゲーム</title>
@@ -312,7 +312,7 @@
     bgm.muted = true;
     muteButton.textContent = '音 ON';
 
-     // 追加：ゲーム終了音
+     // ゲーム終了音の要素を取得
     const dqWinSound = document.getElementById("dqWinSound");
     const dqDownSound = document.getElementById("dqDownSound");
 
@@ -417,23 +417,25 @@
       playerHPInner.style.width = Math.max(0, playerHP) + "%";
     }
 
-    // ゲームオーバー判定
+      // ゲームオーバー判定（音を鳴らす）
     function checkGameOver() {
     if (plantHP <= 0 || playerHP <= 0) {
       if (plantHP <= 0) {
         messageBox.innerText = "植物は　たおれた。";
-        dqWinSound.play(); // 植物が倒れたときの音を鳴らす
+        dqWinSound.play().catch(error => console.error("音の再生エラー:", error)); // 植物が倒れた時の音
       } 
       else {
         messageBox.innerText = "プレイヤーは　たおれた。";
-        dqDownSound.play(); // プレイヤーが倒れたときの音を鳴らす
+        dqDownSound.play().catch(error => console.error("音の再生エラー:", error)); // プレイヤーが倒れた時の音
       }
       
+      // 画面のボタン・画像を隠す
       plantImage.style.display = "none";
       classificationButtons.forEach(btn => btn.style.display = "none");
       document.getElementById('plantHP').style.display = "none";
       document.getElementById('playerHP').style.display = "none";
       endScreen.style.display = "block";
+      
       }
     }
   </script>
