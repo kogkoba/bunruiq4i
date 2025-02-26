@@ -311,6 +311,10 @@
     bgm.muted = true;
     muteButton.textContent = '音 ON';
 
+     // 追加：ゲーム終了音
+    const dqWinSound = document.getElementById("dqWinSound");
+    const dqDownSound = document.getElementById("dqDownSound");
+
     // スタートボタン
     startButton.addEventListener('click', startGame);
 
@@ -326,9 +330,13 @@
       });
     });
 
-    // くちぶえボタン（リロード）
-    mouthButton.addEventListener('click', () => {
-      location.reload();
+    // くちぶえボタン（リロード & 音を止める）
+    mouthButton.addEventListener("click", () => {
+    dqWinSound.pause();
+    dqWinSound.currentTime = 0;
+    dqDownSound.pause();
+    dqDownSound.currentTime = 0;
+    location.reload();
     });
 
     // ミュートトグルボタンの処理
@@ -410,18 +418,22 @@
 
     // ゲームオーバー判定
     function checkGameOver() {
-      if (plantHP <= 0 || playerHP <= 0) {
-        if (plantHP <= 0) {
-          messageBox.innerText = "植物は　たおれた。";
-        } else {
-          messageBox.innerText = "プレイヤーは　たおれた。";
-        }
-        plantImage.style.display = "none";
-        classificationButtons.forEach(btn => btn.style.display = "none");
-        document.getElementById('plantHP').style.display = "none";
-        document.getElementById('playerHP').style.display = "none";
-        endScreen.style.display = "block";
+    if (plantHP <= 0 || playerHP <= 0) {
+      if (plantHP <= 0) {
+        messageBox.innerText = "植物は　たおれた。";
+        dqWinSound.play(); // 植物が倒れたときの音を鳴らす
+      } 
+      else {
+        messageBox.innerText = "プレイヤーは　たおれた。";
+        dqDownSound.play(); // プレイヤーが倒れたときの音を鳴らす
       }
+      
+      plantImage.style.display = "none";
+      classificationButtons.forEach(btn => btn.style.display = "none");
+      document.getElementById('plantHP').style.display = "none";
+      document.getElementById('playerHP').style.display = "none";
+      endScreen.style.display = "block";
+    }
     }
   </script>
 </body>
