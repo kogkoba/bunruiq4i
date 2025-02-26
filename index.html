@@ -63,6 +63,10 @@
         <span>BGMの有無: </span>
         <button id="muteButton" class="button">音 ON</button>
       </div>
+      <div id="questionContainer" style="display: none;">
+        <h2 id="questionText"></h2>
+        <div id="choices"></div>
+      </div>
       <div id="endScreen" class="dq-frame" style="display: none;">
         <button id="mouthButton" class="button">▶くちぶえ</button>
       </div>
@@ -78,6 +82,9 @@
     const startButton = document.getElementById("startButton");
     const gameScreen = document.getElementById("gameScreen");
     const messageBox = document.getElementById("messageBox");
+    const questionContainer = document.getElementById("questionContainer");
+    const questionText = document.getElementById("questionText");
+    const choicesDiv = document.getElementById("choices");
     const mouthButton = document.getElementById("mouthButton");
     const endScreen = document.getElementById("endScreen");
     const bgm = document.getElementById("bgm");
@@ -89,7 +96,6 @@
     bgm.muted = isMuted;
     muteButton.textContent = isMuted ? "音 ON" : "音 OFF";
 
-    // ✅ BGMのミュートトグル
     muteButton.addEventListener("click", () => {
       bgm.muted = !bgm.muted;
       localStorage.setItem("bgmMuted", bgm.muted);
@@ -99,10 +105,8 @@
       }
     });
 
-    // ✅ スタートボタン（ゲーム開始）
     startButton.addEventListener("click", startGame);
 
-    // ✅ くちぶえボタン（ゲームリセット）
     mouthButton.addEventListener("click", () => {
       dqWinSound.pause();
       dqWinSound.currentTime = 0;
@@ -114,6 +118,7 @@
     function startGame() {
       startScreen.style.display = "none";
       gameScreen.style.display = "block";
+      questionContainer.style.display = "block"; // ✅ クイズ画面を表示
       if (!bgm.muted) {
         bgm.play().catch(error => console.error("BGM再生エラー:", error));
       }
@@ -122,12 +127,29 @@
 
     function nextQuestion() {
       messageBox.innerText = "新しい問題が出題されました！";
+      questionText.innerText = "この植物は何？";
+      choicesDiv.innerHTML = "";
+      ["アブラナ", "イネ", "キク", "マメ"].forEach((choice, index) => {
+        let button = document.createElement("button");
+        button.innerText = choice;
+        button.classList.add("button");
+        button.addEventListener("click", () => checkAnswer(index));
+        choicesDiv.appendChild(button);
+      });
+    }
+
+    function checkAnswer(selected) {
+      if (selected === 0) {
+        messageBox.innerText = "正解！";
+      } else {
+        messageBox.innerText = "不正解...";
+        checkGameOver(true);
+      }
     }
 
     function checkGameOver(playerLost) {
       bgm.pause();
       bgm.currentTime = 0;
-
       if (playerLost) {
         messageBox.innerText = "プレイヤーは　たおれた。";
         dqDownSound.play().catch(error => console.error("音の再生エラー:", error));
@@ -135,9 +157,10 @@
         messageBox.innerText = "植物は　たおれた。";
         dqWinSound.play().catch(error => console.error("音の再生エラー:", error));
       }
-
+      questionContainer.style.display = "none"; // ✅ クイズ画面を隠す
       endScreen.style.display = "block";
     }
   </script>
 </body>
 </html>
+
