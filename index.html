@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  ２
+  3
+
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>植物の分類わけクイズゲーム</title>
@@ -301,7 +302,9 @@
     const mouthButton = document.getElementById('mouthButton');
     const endScreen = document.getElementById('endScreen');
     const bgm = document.getElementById('bgm');
-    const muteButton = document.getElementById('muteButton');
+    const dqWinSound = document.getElementById("dqWinSound");
+    const dqDownSound = document.getElementById("dqDownSound");
+    const muteButton = document.getElementById("muteButton");
     const gameContainer = document.getElementById('gameContainer');
 
     // HPバー要素
@@ -331,14 +334,20 @@
       });
     });
 
-    // くちぶえボタン（リロード & 音を止める）
+     // ローカルストレージからBGMミュート設定を取得
+    const isMuted = localStorage.getItem("bgmMuted") === "true";
+    bgm.muted = isMuted;
+    muteButton.textContent = isMuted ? "音 ON" : "音 OFF";
+
+
+    // くちぶえボタン（音を止めてリロード）
     mouthButton.addEventListener("click", () => {
     dqWinSound.pause();
     dqWinSound.currentTime = 0;
     dqDownSound.pause();
     dqDownSound.currentTime = 0;
     location.reload();
-    });
+  });
 
     // ミュートトグルボタンの処理
     muteButton.addEventListener('click', () => {
@@ -417,16 +426,16 @@
       playerHPInner.style.width = Math.max(0, playerHP) + "%";
     }
 
-      // ゲームオーバー判定（音を鳴らす）
+      // ゲームオーバー判定（BGMを止める & 音を鳴らす）
     function checkGameOver() {
     if (plantHP <= 0 || playerHP <= 0) {
+      bgm.pause(); // 🎵 BGMを止める
       if (plantHP <= 0) {
         messageBox.innerText = "植物は　たおれた。";
-        dqWinSound.play().catch(error => console.error("音の再生エラー:", error)); // 植物が倒れた時の音
-      } 
-      else {
+        dqWinSound.play().catch(error => console.error("音の再生エラー:", error));
+      } else {
         messageBox.innerText = "プレイヤーは　たおれた。";
-        dqDownSound.play().catch(error => console.error("音の再生エラー:", error)); // プレイヤーが倒れた時の音
+        dqDownSound.play().catch(error => console.error("音の再生エラー:", error));
       }
       
       // 画面のボタン・画像を隠す
@@ -435,6 +444,29 @@
       document.getElementById('plantHP').style.display = "none";
       document.getElementById('playerHP').style.display = "none";
       endScreen.style.display = "block";
+
+      // BGMのミュート切り替え
+      muteButton.addEventListener("click", () => {
+        bgm.muted = !bgm.muted;
+        localStorage.setItem("bgmMuted", bgm.muted); // 設定を保存
+        muteButton.textContent = bgm.muted ? "音 ON" : "音 OFF";
+    
+    if (!bgm.muted) {
+      bgm.play().catch(error => console.error("BGM再生エラー:", error));
+    }
+        // ゲーム開始時にBGMを再生（ミュート設定を考慮）
+        function startGame() {
+          startScreen.style.display = "none";
+          gameScreen.style.display = "block";
+
+    if (!bgm.muted) {
+      bgm.play().catch(error => console.error("BGM再生エラー:", error));
+    }
+
+    nextQuestion();
+
+        
+  });
       
       }
     }
