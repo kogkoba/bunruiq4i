@@ -293,19 +293,21 @@
     let plantHP = 100;
     let playerHP = 100;
 
-    const startScreen = document.getElementById('startScreen');
-    const startButton = document.getElementById('startButton');
-    const gameScreen = document.getElementById('gameScreen');
-    const messageBox = document.getElementById('messageBox');
-    const plantImage = document.getElementById('plantImage');
-    const classificationButtons = document.querySelectorAll('.classification');
-    const mouthButton = document.getElementById('mouthButton');
-    const endScreen = document.getElementById('endScreen');
-    const bgm = document.getElementById('bgm');
-    const dqWinSound = document.getElementById("dqWinSound");
-    const dqDownSound = document.getElementById("dqDownSound");
-    const muteButton = document.getElementById("muteButton");
-    const gameContainer = document.getElementById('gameContainer');
+    // DOM要素の取得
+  const startScreen = document.getElementById("startScreen");
+  const startButton = document.getElementById("startButton");
+  const gameScreen = document.getElementById("gameScreen");
+  const messageBox = document.getElementById("messageBox");
+  const mouthButton = document.getElementById("mouthButton");
+  const endScreen = document.getElementById("endScreen");
+  const bgm = document.getElementById("bgm");
+  const dqWinSound = document.getElementById("dqWinSound");
+  const dqDownSound = document.getElementById("dqDownSound");
+  const muteButton = document.getElementById("muteButton");
+
+
+
+    
 
     // HPバー要素
     const plantHPInner = document.getElementById('plantHPInner');
@@ -317,7 +319,7 @@
 
  
     // スタートボタン
-    startButton.addEventListener('click', startGame);
+  startButton.addEventListener("click", startGame);
 
     // 分類ボタン
     classificationButtons.forEach(button => {
@@ -338,7 +340,7 @@
 
 
     // くちぶえボタン（音を止めてリロード）
-    mouthButton.addEventListener("click", () => {
+  mouthButton.addEventListener("click", () => {
     dqWinSound.pause();
     dqWinSound.currentTime = 0;
     dqDownSound.pause();
@@ -346,10 +348,20 @@
     location.reload();
   });
 
-    // ミュートトグルボタンの処理
-    muteButton.addEventListener('click', () => {
-      if (bgm.muted) {
-        bgm.muted = false;
+    // ミュート状態を取得・設定
+    let isMuted = localStorage.getItem("bgmMuted") === "true";
+    bgm.muted = isMuted;
+    muteButton.textContent = isMuted ? "音 ON" : "音 OFF";
+
+    // ミュートトグルボタン（最初に1回だけ設定）
+    muteButton.addEventListener("click", () => {
+    bgm.muted = !bgm.muted;
+    localStorage.setItem("bgmMuted", bgm.muted);
+    muteButton.textContent = bgm.muted ? "音 ON" : "音 OFF";
+    if (!bgm.muted) {
+      bgm.play().catch(error => console.error("BGM再生エラー:", error));
+    }
+    
         // ユーザー操作による再生開始（iOS対策）
         bgm.play().catch(error => console.error("BGM再生エラー:", error));
         muteButton.textContent = '音 OFF';
@@ -360,11 +372,13 @@
     });
 
     // ゲーム開始
-    function startGame() {
-      startScreen.style.display = 'none';
-      gameScreen.style.display = 'block';
-      // ユーザー操作でBGM再生（初回再生）
+  function startGame() {
+    startScreen.style.display = "none";
+    gameScreen.style.display = "block";
+    if (!bgm.muted) {
       bgm.play().catch(error => console.error("BGM再生エラー:", error));
+    }
+    
       nextQuestion();
     }
 
@@ -423,17 +437,18 @@
       playerHPInner.style.width = Math.max(0, playerHP) + "%";
     }
 
-      // ゲームオーバー判定（BGMを止める & 音を鳴らす）
-    function checkGameOver() {
-    if (plantHP <= 0 || playerHP <= 0) {
-      bgm.pause(); // 🎵 BGMを止める
-      if (plantHP <= 0) {
-        messageBox.innerText = "植物は　たおれた。";
-        dqWinSound.play().catch(error => console.error("音の再生エラー:", error));
-      } else {
-        messageBox.innerText = "プレイヤーは　たおれた。";
-        dqDownSound.play().catch(error => console.error("音の再生エラー:", error));
-      }
+     // ゲームオーバー処理（BGMを止め、音を鳴らす）
+    function checkGameOver(playerLost) {
+    bgm.pause(); // BGMを止める
+    if (playerLost) {
+      messageBox.innerText = "プレイヤーは　たおれた。";
+      dqDownSound.play().catch(error => console.error("音の再生エラー:", error));
+    } else {
+      messageBox.innerText = "植物は　たおれた。";
+      dqWinSound.play().catch(error => console.error("音の再生エラー:", error));
+    }
+    endScreen.style.display = "block";
+  }
       
       // 画面のボタン・画像を隠す
       plantImage.style.display = "none";
