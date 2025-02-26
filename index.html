@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  3
+  ４
 
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -315,10 +315,7 @@
     bgm.muted = true;
     muteButton.textContent = '音 ON';
 
-     // ゲーム終了音の要素を取得
-    const dqWinSound = document.getElementById("dqWinSound");
-    const dqDownSound = document.getElementById("dqDownSound");
-
+ 
     // スタートボタン
     startButton.addEventListener('click', startGame);
 
@@ -445,26 +442,8 @@
       document.getElementById('playerHP').style.display = "none";
       endScreen.style.display = "block";
 
-      // BGMのミュート切り替え
-      muteButton.addEventListener("click", () => {
-        bgm.muted = !bgm.muted;
-        localStorage.setItem("bgmMuted", bgm.muted); // 設定を保存
-        muteButton.textContent = bgm.muted ? "音 ON" : "音 OFF";
-    
-    if (!bgm.muted) {
-      bgm.play().catch(error => console.error("BGM再生エラー:", error));
-    }
-        // ゲーム開始時にBGMを再生（ミュート設定を考慮）
-        function startGame() {
-          startScreen.style.display = "none";
-          gameScreen.style.display = "block";
-
-    if (!bgm.muted) {
-      bgm.play().catch(error => console.error("BGM再生エラー:", error));
-    }
-
-    nextQuestion();
-
+   
+     
         
   });
       
