@@ -304,9 +304,15 @@
     const plantHPInner = document.getElementById('plantHPInner');
     const playerHPInner = document.getElementById('playerHPInner');
 
-    // BGM初期設定（初期はミュート状態）
-    bgm.muted = true;
-    muteButton.textContent = '音 ON';
+    // ローカルストレージからミュート設定を読み込む
+    const storedMute = localStorage.getItem('bgmMuted');
+    if (storedMute !== null) {
+      bgm.muted = JSON.parse(storedMute);
+    } else {
+      bgm.muted = true;
+      localStorage.setItem('bgmMuted', true);
+    }
+    muteButton.textContent = bgm.muted ? '音 ON' : '音 OFF';
 
     // スタートボタン
     startButton.addEventListener('click', startGame);
@@ -328,17 +334,17 @@
       location.reload();
     });
 
-    // ミュートトグルボタンの処理
+    // ミュートトグルボタンの処理（状態をlocalStorageに保存）
     muteButton.addEventListener('click', () => {
       if (bgm.muted) {
         bgm.muted = false;
-        // ユーザー操作による再生開始（iOS対策）
         bgm.play().catch(error => console.error("BGM再生エラー:", error));
         muteButton.textContent = '音 OFF';
       } else {
         bgm.muted = true;
         muteButton.textContent = '音 ON';
       }
+      localStorage.setItem('bgmMuted', bgm.muted);
     });
 
     // ゲーム開始
@@ -405,14 +411,24 @@
       playerHPInner.style.width = Math.max(0, playerHP) + "%";
     }
 
-    // ゲームオーバー判定
+    // ゲームオーバー判定（BGM停止＆サウンド再生を追加）
     function checkGameOver() {
       if (plantHP <= 0 || playerHP <= 0) {
+        // BGMを一時停止
+        bgm.pause();
+
         if (plantHP <= 0) {
           messageBox.innerText = "植物は　たおれた。";
+          // 勝利時のサウンドを再生
+          let winAudio = new Audio("https://kogkoba.github.io/bunruiq4i/DQwin.mp3");
+          winAudio.play();
         } else {
           messageBox.innerText = "プレイヤーは　たおれた。";
+          // 敗北時のサウンドを再生
+          let loseAudio = new Audio("https://kogkoba.github.io/bunruiq4i/DQdown.mp3");
+          loseAudio.play();
         }
+
         plantImage.style.display = "none";
         classificationButtons.forEach(btn => btn.style.display = "none");
         document.getElementById('plantHP').style.display = "none";
