@@ -4,9 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>植物の分類わけクイズゲーム</title>
+  <!-- フォント例（必要に応じて） -->
+  <!-- <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"> -->
   <style>
+    /* =============================
+       全体のスタイル
+       ============================= */
     body {
-      touch-action: manipulation;
+      touch-action: manipulation; /* モバイルでのピンチアウト対応 */
       background-color: black;
       color: white;
       font-family: 'Press Start 2P', monospace;
@@ -14,6 +19,7 @@
       padding: 0;
       text-align: center;
     }
+    /* メインコンテナ */
     #gameContainer {
       width: 90vw;
       max-width: 100vw;
@@ -21,6 +27,7 @@
       background-color: black;
       color: white;
       text-align: center;
+      transform-origin: center;
       margin: auto;
       display: flex;
       flex-direction: column;
@@ -28,6 +35,7 @@
       justify-content: center;
       overflow: hidden;
     }
+    /* ドラクエ風枠 */
     .dq-frame {
       border: 3px double white;
       background-color: black;
@@ -36,6 +44,45 @@
       margin: 10px auto;
       box-sizing: border-box;
     }
+    /* メッセージボックス */
+    #messageBox {
+      width: 90%;
+      height: 60px;
+      overflow: hidden;
+      margin: 10px auto;
+      font-size: 14px;
+    }
+    /* HPバー */
+    .hp-bar {
+      width: 100%;
+      height: 20px;
+      border: 1px solid white;
+      margin: 5px 0;
+      display: flex;
+      align-items: center;
+    }
+    .hp-inner {
+      height: 100%;
+      background: linear-gradient(to right, red, darkred);
+      transition: width 0.3s ease-in-out;
+    }
+    /* 植物画像表示領域 */
+    #plantImageContainer {
+      width: 300px;
+      height: 300px;
+      margin: 10px auto;
+      border: 3px double white;
+      background-color: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    #plantImage {
+      max-width: 80%;
+      max-height: 80%;
+    }
+    /* ボタン（ドラクエ風） */
     .button {
       background-color: black;
       border: 2px solid white;
@@ -50,108 +97,328 @@
       background-color: white;
       color: black;
     }
+    /* 分類選択ボタン */
+    #classificationButtons {
+      width: 240px;
+      border: 3px double white;
+      background-color: black;
+      margin: 10px auto;
+      padding: 10px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+      justify-items: center;
+    }
+    /* シェイクアニメーション */
+    @keyframes shake {
+      0% { transform: translate(0, 0); }
+      20% { transform: translate(-10px, 0); }
+      40% { transform: translate(10px, 0); }
+      60% { transform: translate(-10px, 0); }
+      80% { transform: translate(10px, 0); }
+      100% { transform: translate(0, 0); }
+    }
+    .shake {
+      animation: shake 0.5s;
+    }
   </style>
 </head>
 <body>
   <div id="gameContainer">
+    <!-- スタート画面 -->
     <div id="startScreen" class="dq-frame">
       <button id="startButton" class="button">スタート</button>
     </div>
     
+    <!-- ゲーム画面 -->
     <div id="gameScreen" style="display: none;">
+      <!-- 植物HPバー -->
+      <div id="plantHP" class="hp-bar">
+        <div id="plantHPInner" class="hp-inner" style="width: 100%;"></div>
+      </div>
+      
+      <!-- メッセージボックス -->
       <div id="messageBox" class="dq-frame"></div>
+      
+      <!-- 植物画像 -->
+      <div id="plantImageContainer">
+        <img id="plantImage" src="" alt="植物画像">
+      </div>
+      
+      <!-- BGMトグル：ラベルとボタン -->
       <div>
         <span>BGMの有無: </span>
         <button id="muteButton" class="button">音 ON</button>
       </div>
+      
+      <!-- 分類選択ボタン -->
+      <div id="classificationButtons">
+        <button class="button classification" data-class="アブラナ科">アブラナ科</button>
+        <button class="button classification" data-class="イネ科">イネ科</button>
+        <button class="button classification" data-class="ウリ科">ウリ科</button>
+        <button class="button classification" data-class="キク科">キク科</button>
+        <button class="button classification" data-class="マメ科">マメ科</button>
+        <button class="button classification" data-class="その他">その他</button>
+      </div>
+      
+      <!-- プレイヤーHPバー -->
+      <div id="playerHP" class="hp-bar">
+        <div id="playerHPInner" class="hp-inner" style="width: 100%;"></div>
+      </div>
+      
+      <!-- ゲーム終了時：くちぶえボタン -->
       <div id="endScreen" class="dq-frame" style="display: none;">
         <button id="mouthButton" class="button">▶くちぶえ</button>
       </div>
     </div>
   </div>
   
-  <!-- BGM & 効果音 -->
+  <!-- BGM音声要素 -->
   <audio id="bgm" src="https://kogkoba.github.io/bunrui/sciencebgm.mp3" loop></audio>
-  <audio id="dqWinSound" src="https://kogkoba.github.io/bunruiq4i/DQwin.mp3"></audio>
-  <audio id="dqDownSound" src="https://kogkoba.github.io/bunruiq4i/DQdown.mp3"></audio>
-
+  
   <script>
-    const startScreen = document.getElementById("startScreen");
-    const startButton = document.getElementById("startButton");
-    const gameScreen = document.getElementById("gameScreen");
-    const messageBox = document.getElementById("messageBox");
-    const mouthButton = document.getElementById("mouthButton");
-    const endScreen = document.getElementById("endScreen");
-    const bgm = document.getElementById("bgm");
-    const dqWinSound = document.getElementById("dqWinSound");
-    const dqDownSound = document.getElementById("dqDownSound");
-    const muteButton = document.getElementById("muteButton");
-
-    // 🔊 ローカルストレージからBGMのミュート設定を取得
-    let isMuted = localStorage.getItem("bgmMuted") === "true";
-    bgm.muted = isMuted;
-    muteButton.textContent = isMuted ? "音 ON" : "音 OFF";
-
-    // 🔇 ミュートボタンの切り替え処理
-    muteButton.addEventListener("click", () => {
-      bgm.muted = !bgm.muted;
-      localStorage.setItem("bgmMuted", bgm.muted);
-      muteButton.textContent = bgm.muted ? "音 ON" : "音 OFF";
-      if (!bgm.muted) {
-        bgm.play().catch(error => console.error("BGM再生エラー:", error));
+    /* =============================
+       ピンチアウト(ズーム)制御
+       ============================= */
+    let zoomTarget = document.getElementById("gameContainer");
+    let initialDistance = 0;
+    let scale = 1;
+    const minScale = 0.5;
+    const maxScale = 2.5;
+    function getDistance(touches) {
+      let dx = touches[0].clientX - touches[1].clientX;
+      let dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+    document.addEventListener("touchstart", (event) => {
+      if (event.touches.length === 2) {
+        initialDistance = getDistance(event.touches);
+      }
+    });
+    document.addEventListener("touchmove", (event) => {
+      if (event.touches.length === 2) {
+        let newDistance = getDistance(event.touches);
+        let zoomFactor = newDistance / initialDistance;
+        scale *= zoomFactor;
+        if (scale < minScale) scale = minScale;
+        if (scale > maxScale) scale = maxScale;
+        zoomTarget.style.transform = `scale(${scale})`;
+        initialDistance = newDistance;
+        event.preventDefault();
       }
     });
 
-    // 🎮 スタートボタン（ゲーム開始）
-    startButton.addEventListener("click", startGame);
+    /* =============================
+       クイズゲームのロジック
+       ============================= */
+    // ▼ 69種類の植物データ
+    const plants = [
+      { file: "aburanna.png", classification: "アブラナ科", name: "アブラナ" },
+      { file: "inugarashi.png", classification: "アブラナ科", name: "イヌガラシ" },
+      { file: "kabu.png", classification: "アブラナ科", name: "カブ" },
+      { file: "kyabetu.png", classification: "アブラナ科", name: "キャベツ" },
+      { file: "daikon.png", classification: "アブラナ科", name: "ダイコン" },
+      { file: "nazuna.png", classification: "アブラナ科", name: "ナズナ" },
+      { file: "wasabi.png", classification: "アブラナ科", name: "ワサビ" },
+      { file: "ine.png", classification: "イネ科", name: "イネ" },
+      { file: "enokorogusa.png", classification: "イネ科", name: "エノコログサ" },
+      { file: "ohisiba.png", classification: "イネ科", name: "オヒシバ" },
+      { file: "komugi.png", classification: "イネ科", name: "コムギ" },
+      { file: "sasa.png", classification: "イネ科", name: "ササ" },
+      { file: "susuki.png", classification: "イネ科", name: "ススキ" },
+      { file: "suzumenokatabira.png", classification: "イネ科", name: "スズメノカタビラ" },
+      { file: "suzumenoteppou.png", classification: "イネ科", name: "スズメノテッポウ" },
+      { file: "take.png", classification: "イネ科", name: "タケ" },
+      { file: "toumorokoshi.png", classification: "イネ科", name: "トウモロコシ" },
+      { file: "mehisiba.png", classification: "イネ科", name: "メヒシバ" },
+      { file: "amatyazuru.png", classification: "ウリ科", name: "アマチャヅル" },
+      { file: "kabotya.png", classification: "ウリ科", name: "カボチャ" },
+      { file: "karasuuri.png", classification: "ウリ科", name: "カラスウリ" },
+      { file: "kyuuri.png", classification: "ウリ科", name: "キュウリ" },
+      { file: "suika.png", classification: "ウリ科", name: "スイカ" },
+      { file: "hetima.png", classification: "ウリ科", name: "ヘチマ" },
+      { file: "yuugao.png", classification: "ウリ科", name: "ユウガオ" },
+      { file: "onamomi.png", classification: "キク科", name: "オナモミ" },
+      { file: "kiku.png", classification: "キク科", name: "キク" },
+      { file: "kosumosu.png", classification: "キク科", name: "コスモス" },
+      { file: "seitakaawadatisou.png", classification: "キク科", name: "セイタカアワダチソウ" },
+      { file: "senndanngusa.png", classification: "キク科", name: "センダングサ" },
+      { file: "daria.png", classification: "キク科", name: "ダリア" },
+      { file: "tannpopo.png", classification: "キク科", name: "タンポポ" },
+      { file: "noazami.png", classification: "キク科", name: "ノアザミ" },
+      { file: "nogeshi.png", classification: "キク科", name: "ノゲシ" },
+      { file: "haruzion.png", classification: "キク科", name: "ハルジオン" },
+      { file: "himawari.png", classification: "キク科", name: "ヒマワリ" },
+      { file: "himezyoon.png", classification: "キク科", name: "ヒメジョオン" },
+      { file: "hyakunitisou.png", classification: "キク科", name: "ヒャクニチソウ" },
+      { file: "ma-garetto.png", classification: "キク科", name: "マーガレット" },
+      { file: "mari-go-rudo.png", classification: "キク科", name: "マリーゴールド" },
+      { file: "asagao.png", classification: "その他", name: "アサガオ" },
+      { file: "ayame.png", classification: "その他", name: "アヤメ" },
+      { file: "oobako.png", classification: "その他", name: "オオバコ" },
+      { file: "osiroibana.png", classification: "その他", name: "オシロイバナ" },
+      { file: "katabami.png", classification: "その他", name: "カタバミ" },
+      { file: "guraziorasu.png", classification: "その他", name: "グラジオラス" },
+      { file: "sakura.png", classification: "その他", name: "サクラ" },
+      { file: "zyagaimo.png", classification: "その他", name: "ジャガイモ" },
+      { file: "suisen.png", classification: "その他", name: "スイセン" },
+      { file: "tutuzi.png", classification: "その他", name: "ツツジ" },
+      { file: "tubaki.png", classification: "その他", name: "ツバキ" },
+      { file: "tuyukusa.png", classification: "その他", name: "ツユクサ" },
+      { file: "higannbana.png", classification: "その他", name: "ヒガンバナ" },
+      { file: "hiyasinnsu.png", classification: "その他", name: "ヒヤシンス" },
+      { file: "housennka.png", classification: "その他", name: "ホウセンカ" },
+      { file: "yadorigi.png", classification: "その他", name: "ヤドリギ" },
+      { file: "yamabuki.png", classification: "その他", name: "ヤマブキ" },
+      { file: "yuri.png", classification: "その他", name: "ユリ" },
+      { file: "inngennmame.png", classification: "マメ科", name: "インゲンマメ" },
+      { file: "enndou.png", classification: "マメ科", name: "エンドウ" },
+      { file: "ozigisou.png", classification: "マメ科", name: "オジギソウ" },
+      { file: "karasunoenndou.png", classification: "マメ科", name: "カラスノエンドウ" },
+      { file: "kuzu.png", classification: "マメ科", name: "クズ" },
+      { file: "gennge.png", classification: "マメ科", name: "ゲンゲ" },
+      { file: "sirotumegusa.png", classification: "マメ科", name: "シロツメグサ" },
+      { file: "sui-topi.png", classification: "マメ科", name: "スイートピー" },
+      { file: "nemunoki.png", classification: "マメ科", name: "ネムノキ" },
+      { file: "hagi.png", classification: "マメ科", name: "ハギ" },
+      { file: "fuzi.png", classification: "マメ科", name: "フジ" }
+    ];
 
-    // 🔄 くちぶえボタン（リセット）
-    mouthButton.addEventListener("click", () => {
-      stopAllSounds();
+    let currentPlant = null;
+    let plantHP = 100;
+    let playerHP = 100;
+
+    const startScreen = document.getElementById('startScreen');
+    const startButton = document.getElementById('startButton');
+    const gameScreen = document.getElementById('gameScreen');
+    const messageBox = document.getElementById('messageBox');
+    const plantImage = document.getElementById('plantImage');
+    const classificationButtons = document.querySelectorAll('.classification');
+    const mouthButton = document.getElementById('mouthButton');
+    const endScreen = document.getElementById('endScreen');
+    const bgm = document.getElementById('bgm');
+    const muteButton = document.getElementById('muteButton');
+    const gameContainer = document.getElementById('gameContainer');
+
+    // HPバー要素
+    const plantHPInner = document.getElementById('plantHPInner');
+    const playerHPInner = document.getElementById('playerHPInner');
+
+    // BGM初期設定（初期はミュート状態）
+    bgm.muted = true;
+    muteButton.textContent = '音 ON';
+
+    // スタートボタン
+    startButton.addEventListener('click', startGame);
+
+    // 分類ボタン
+    classificationButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        const originalText = button.innerText;
+        button.innerText = "▶" + originalText;
+        setTimeout(() => { 
+          button.innerText = originalText; 
+        }, 200);
+        handleAnswer(button.getAttribute('data-class'));
+      });
+    });
+
+    // くちぶえボタン（リロード）
+    mouthButton.addEventListener('click', () => {
       location.reload();
     });
 
-    function startGame() {
-      startScreen.style.display = "none";
-      gameScreen.style.display = "block";
-      if (!bgm.muted) {
+    // ミュートトグルボタンの処理
+    muteButton.addEventListener('click', () => {
+      if (bgm.muted) {
+        bgm.muted = false;
+        // ユーザー操作による再生開始（iOS対策）
         bgm.play().catch(error => console.error("BGM再生エラー:", error));
+        muteButton.textContent = '音 OFF';
+      } else {
+        bgm.muted = true;
+        muteButton.textContent = '音 ON';
       }
+    });
+
+    // ゲーム開始
+    function startGame() {
+      startScreen.style.display = 'none';
+      gameScreen.style.display = 'block';
+      // ユーザー操作でBGM再生（初回再生）
+      bgm.play().catch(error => console.error("BGM再生エラー:", error));
       nextQuestion();
     }
 
+    // 次の問題を出す
     function nextQuestion() {
+      messageBox.innerText = "";
+      currentPlant = plants[Math.floor(Math.random() * plants.length)];
+      // 画像は index.html と同階層に配置されている前提
+      plantImage.src = currentPlant.file;
       messageBox.innerText = "植物が　あらわれた。";
       setTimeout(() => {
-        messageBox.innerText = "植物は ○○○ を　くりだした。";
+        messageBox.innerText = "植物は " + currentPlant.name + " を　くりだした。";
       }, 400);
     }
 
-    function checkGameOver(playerLost) {
-      // 🎵 BGMを停止して最初に戻す
-      bgm.pause();
-      bgm.currentTime = 0;
-
-      // 🎶 適切な効果音を再生
-      if (playerLost) {
-        messageBox.innerText = "プレイヤーは　たおれた。";
-        dqDownSound.play().catch(error => console.error("音の再生エラー:", error));
+    // ボタン押下時の処理
+    function handleAnswer(selectedClass) {
+      if (selectedClass === currentPlant.classification) {
+        messageBox.innerText = currentPlant.name + " は　" + currentPlant.classification + " だ";
+        setTimeout(() => {
+          messageBox.innerText = "正解！ 植物に20のダメージ";
+          plantHP -= 20;
+          updateHP();
+          checkGameOver();
+          if (plantHP > 0) {
+            setTimeout(nextQuestion, 1000);
+          }
+        }, 1000);
       } else {
-        messageBox.innerText = "植物は　たおれた。";
-        dqWinSound.play().catch(error => console.error("音の再生エラー:", error));
-      }
+        // 不正解の場合、画面にシェイク効果を追加
+        gameContainer.classList.add('shake');
+        // シェイクアニメーション終了後、クラスを除去
+        setTimeout(() => {
+          gameContainer.classList.remove('shake');
+        }, 500);
 
-      // 🎮 画面の更新
-      endScreen.style.display = "block";
+        messageBox.innerText = "ミス！";
+        setTimeout(() => {
+          messageBox.innerText = currentPlant.name + " は　" + currentPlant.classification + " だ";
+          setTimeout(() => {
+            messageBox.innerText = "プレイヤーに20のダメージ";
+            playerHP -= 20;
+            updateHP();
+            checkGameOver();
+            if (playerHP > 0) {
+              setTimeout(nextQuestion, 1000);
+            }
+          }, 1000);
+        }, 500);
+      }
     }
 
-    function stopAllSounds() {
-      bgm.pause();
-      bgm.currentTime = 0;
-      dqWinSound.pause();
-      dqWinSound.currentTime = 0;
-      dqDownSound.pause();
-      dqDownSound.currentTime = 0;
+    // HPバー更新
+    function updateHP() {
+      plantHPInner.style.width = Math.max(0, plantHP) + "%";
+      playerHPInner.style.width = Math.max(0, playerHP) + "%";
+    }
+
+    // ゲームオーバー判定
+    function checkGameOver() {
+      if (plantHP <= 0 || playerHP <= 0) {
+        if (plantHP <= 0) {
+          messageBox.innerText = "植物は　たおれた。";
+        } else {
+          messageBox.innerText = "プレイヤーは　たおれた。";
+        }
+        plantImage.style.display = "none";
+        classificationButtons.forEach(btn => btn.style.display = "none");
+        document.getElementById('plantHP').style.display = "none";
+        document.getElementById('playerHP').style.display = "none";
+        endScreen.style.display = "block";
+      }
     }
   </script>
 </body>
